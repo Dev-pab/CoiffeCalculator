@@ -43,14 +43,6 @@ void MainWindow::on_pushButton_2_clicked()
 
 void MainWindow::on_pushButton_3_clicked()
 {
-    QFile file;
-    QString fileName = QFileDialog::getSaveFileName(0, "Save as", "export.csv","csv (*.csv)"); // export csv file
-    file.setFileName(fileName);
-
-    file.open(QFile::WriteOnly | QFile::Text);
-
-    QTextStream txtStream(&file);
-
     QPen _penPoint;
     _penPoint.setBrush(QColorConstants::Black);
     _penPoint.setWidth(1);
@@ -70,6 +62,8 @@ void MainWindow::on_pushButton_3_clicked()
 
     ui->progressBar->setEnabled(true);
 
+    _data.clear();
+
     for (double t=min; t<max; t+=step)
     {
         double y = (rayon*qSqrt(acos(1-(2*t/hauteur))-((sin(2*(acos(1-(2*t/hauteur)))))/2)))/qSqrt(M_PI);
@@ -80,7 +74,7 @@ void MainWindow::on_pushButton_3_clicked()
             _ellipseItem.append(_scene->addEllipse(t, y, 1, 1, _penPoint, brush));
             _ellipseItem.append(_scene->addEllipse(t, -y, 1, 1, _penPoint, brush));
             qDebug() << t << y;
-            txtStream << t << ";" << y << "\n";
+            _data << ( QString::number(t/10) + "," + QString::number(y/10) + ", 0," + "\n" );
         }
 
         ui->progressBar->setValue(t/max * 100);
@@ -91,8 +85,30 @@ void MainWindow::on_pushButton_3_clicked()
 
     _scene->addLine(0,0,hauteur,0,_penPoint);
 
-    file.close();
 
     QTimer::singleShot(1000, this, SLOT(fitIn()));
 
+}
+
+void MainWindow::exportCSV()
+{
+    QFile file;
+    QString fileName = QFileDialog::getSaveFileName(0, "Save as", "export.csv","csv (*.csv)"); // export csv file
+    file.setFileName(fileName);
+
+    file.open(QFile::WriteOnly | QFile::Text);
+
+    QTextStream txtStream(&file);
+
+    for (int i=0; i<_data.size(); i++)
+    {
+        txtStream << _data.at(i);
+    }
+
+    file.close();
+}
+
+void MainWindow::on_pushButton_4_clicked()
+{
+    exportCSV();
 }
